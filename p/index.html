@@ -1,0 +1,294 @@
+<!DOCTYPE html><html lang="id"><head>
+    <meta charset="utf-8">
+    <!-- KUNCI LAYAR: Gak bisa di-zoom, full screen -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="color-scheme" content="dark light">
+    <title>B2AL Aligmotion</title>
+    <script src="js/api.js" async="" defer=""></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        
+        /* KUNCI CSS: Body dipaksa full screen & gak bisa digeser */
+        html, body {
+            height: 100%; width: 100%; overflow: hidden; position: fixed; top: 0; left: 0;
+        }
+
+        body { 
+            background: #050505;
+            background-image: radial-gradient(circle at 15% 50%, rgba(255, 59, 59, 0.08), transparent 25%), radial-gradient(circle at 85% 30%, rgba(255, 140, 0, 0.08), transparent 25%);
+            color: #fff; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center; 
+            position: relative;
+            -webkit-user-select: none; user-select: none; touch-action: none;
+        }
+
+        body::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 30px 30px; z-index: -1;
+        }
+
+        /* KOTAK UTAMA */
+        .card {
+            background: rgba(15, 15, 20, 0.5); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.05); padding: 35px 25px; border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255,255,255,0.1); 
+            text-align: center; width: 90%; max-width: 380px; z-index: 2; 
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
+            margin-bottom: 20px;
+        }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        
+        .logo { font-size: 26px; font-weight: 700; margin-bottom: 6px; letter-spacing: -0.5px; color: #fff; }
+        .logo span { background: linear-gradient(90deg, #ff3b3b, #ff8c00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { font-size: 13px; color: #a1a1aa; margin-bottom: 25px; font-weight: 400; line-height: 1.5; }
+        
+        input { 
+            width: 100%; padding: 15px 18px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; 
+            color: #fff; font-size: 15px; margin-bottom: 16px; outline: none; transition: all 0.3s; 
+            -webkit-text-fill-color: #fff !important; text-align: left;
+        }
+        input::placeholder { color: #52525b; -webkit-text-fill-color: #52525b; }
+        input:focus { border-color: #ff3b3b; box-shadow: 0 0 0 3px rgba(255, 59, 59, 0.2); transform: translateY(-2px); }
+
+        .cf-turnstile { display: flex; justify-content: center; margin-bottom: 15px; transform: scale(0.9); transform-origin: center; }
+
+        button.submit, .btn-green, .btn-red {
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            width: 100%; padding: 15px; border: none; border-radius: 14px; 
+            font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; 
+            text-decoration: none; text-align: center; position: relative; overflow: hidden;
+        }
+        
+        button.submit { background: #fff; color: #000; box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1); }
+        button.submit:hover { background: #e4e4e7; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255, 255, 255, 0.2); }
+        button.submit:active { transform: translateY(1px); }
+        
+        .btn-green { background: #00ff88; color: #000; box-shadow: 0 4px 15px rgba(0, 255, 136, 0.2); margin-top: 10px; }
+        .btn-green:hover { background: #00cc6a; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 255, 136, 0.3); }
+        
+        .btn-red { background: #ff3b3b; color: #fff; box-shadow: 0 4px 15px rgba(255, 59, 59, 0.2); }
+        .btn-red:hover { background: #e63232; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255, 59, 59, 0.3); }
+
+        .btn-loading { display: none; width: 20px; height: 20px; border: 2px solid rgba(0,0,0,0.2); border-top-color: #000; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .step-box { 
+            background: rgba(255, 255, 255, 0.02); padding: 20px 15px; margin: 15px 0; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); 
+            display: flex; flex-direction: column; align-items: center; 
+            animation: fadeInStep 0.5s ease-out forwards;
+        }
+        @keyframes fadeInStep { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .step-title { font-size: 15px; color: #fff; font-weight: 600; margin-bottom: 8px; }
+        .step-desc { font-size: 13px; color: #888; margin-bottom: 15px; line-height: 1.6; }
+        
+        .error { background: rgba(255, 59, 59, 0.1); border: 1px solid rgba(255, 59, 59, 0.3); color: #ff6b6b; padding: 12px; border-radius: 12px; margin-bottom: 20px; font-size: 13px; display: none; }
+        .success { color: #00ff88; font-size: 13px; margin-top: 15px; display: none; }
+        .hidden { display: none !important; }
+        
+        .btn-telegram { display: inline-flex; align-items: center; gap: 8px; color: #a1a1aa; text-decoration: none; font-size: 13px; font-weight: 500; z-index: 2; transition: all 0.3s; }
+        .btn-telegram:hover { color: #fff; transform: scale(1.05); }
+        .btn-telegram svg { width: 16px; height: 16px; fill: currentColor; }
+        
+        textarea { width: 100%; padding: 15px; background: rgba(0,0,0,0.5) !important; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff !important; font-size: 14px; margin-bottom: 15px; outline: none; resize: none; transition: 0.3s; }
+        textarea:focus { border-color: #ff3b3b; transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+    <div id="view-email" class="card">
+        <div class="logo">B2AL <span>ALIGMOTION</span></div>
+        <div class="subtitle">Aktivitas otomatis, proses kilat</div>
+        
+        <div id="error-email" class="error"></div>
+        
+        <form id="form-email" onsubmit="submitEmail(event)">
+            <input type="email" id="input-email" placeholder="Masukkan alamat Gmail" required="" autocomplete="off">
+            
+            <div class="cf-turnstile" data-sitekey="0x4AAAAAAFlRKlt32yoKC9vV" data-theme="dark"></div>
+            
+            <button type="submit" id="btn-submit-email" class="submit">
+                <span id="btn-text">Mulai Aktivasi</span>
+                <div class="btn-loading" id="btn-spinner"></div>
+            </button>
+        </form>
+    </div>
+
+    <div id="view-iklan" class="card hidden">
+        <div class="logo">Memproses <span>Premium</span></div>
+        <div class="subtitle" id="email-text" style="margin-bottom: 10px; font-weight: 600; color: #fff;"></div>
+        
+        <div id="step1" class="step-box">
+            <div class="step-title">Langkah 1: Lewati Iklan</div>
+            <div class="step-desc">Klik tombol di bawah untuk verifikasi.</div>
+            <!-- LINK MOVE2LINK UDAH DIPASANG DI SINI -->
+            <a href="https://move2link.co/c972fe7" class="btn-green" target="_blank">Lewati Iklan &amp; Verifikasi</a>
+        </div>
+        
+        <div id="step2" class="step-box hidden">
+            <div class="step-title">Langkah 2: Klaim Premium</div>
+            <div class="step-desc">Klik tombol di bawah untuk mengirim link ke email kamu.</div>
+            <button id="btnKirimEmail" class="btn-red" onclick="kirimEmail()">
+                <span id="text-kirim">Kirim Link Verifikasi</span>
+                <div class="btn-loading" id="spinner-kirim" style="border-top-color: #fff;"></div>
+            </button>
+        </div>
+        
+        <div id="step3" class="step-box hidden">
+            <div class="step-title">Langkah 3: Verifikasi Email</div>
+            <div class="step-desc" style="color: #00ff88; font-weight: 600;">Link sudah dikirim ke email!</div>
+            <div class="step-desc">Buka email kamu, copy link verifikasinya, lalu paste di bawah ini:</div>
+            <textarea id="linkEmail" rows="3" placeholder="Paste link verifikasi di sini..."></textarea>
+            <button id="btnVerifikasi" class="btn-red" onclick="verifikasi()">
+                <span id="text-verif">Verifikasi Sekarang</span>
+                <div class="btn-loading" id="spinner-verif" style="border-top-color: #fff;"></div>
+            </button>
+        </div>
+        
+        <div id="status-iklan" class="success"></div>
+    </div>
+
+    <a href="https://t.me/b2alvipepp" target="_blank" class="btn-telegram">
+        <svg viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"></path></svg>
+        Join Channel Telegram
+    </a>
+
+    <audio id="bg-music" loop="">
+        <source src="media/musik2.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        const SECRET_KEY = atob("YjJhbF9zdXBlcl9yYWhhc2lhXzEyMw==");
+        const emailFromBackend = ""; 
+        
+        const audio = document.getElementById('bg-music');
+        function playMusic() {
+            audio.volume = 0.5;
+            audio.play().then(() => { sessionStorage.setItem('musicPlaying', 'true'); }).catch(e => console.log("Autoplay diblokir."));
+        }
+        playMusic();
+        document.body.addEventListener('click', function() { if (audio.paused) audio.play(); }, { once: true });
+
+        async function submitEmail(e) {
+            e.preventDefault();
+            const email = document.getElementById('input-email').value;
+            const captchaToken = document.querySelector('[name="cf-turnstile-response"]').value;
+            const errBox = document.getElementById('error-email');
+            
+            const btn = document.getElementById('btn-submit-email');
+            const btnText = document.getElementById('btn-text');
+            const btnSpinner = document.getElementById('btn-spinner');
+            
+            btn.disabled = true;
+            btnText.innerText = "Memproses...";
+            btnSpinner.style.display = 'block';
+            errBox.style.display = 'none';
+
+            try {
+                const res = await fetch('/x/v1/check', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-B2AL-KEY': SECRET_KEY },
+                    body: JSON.stringify({ email: email, captcha: captchaToken })
+                });
+                const data = await res.json();
+
+                if (data.status === 'success') {
+                    document.getElementById('view-email').classList.add('hidden');
+                    document.getElementById('view-iklan').classList.remove('hidden');
+                    document.getElementById('email-text').innerHTML = `Email: <b>${email}</b>`;
+                    
+                    const urlParams = new URLSearchParams(window.location.search);
+                    if (urlParams.get('owner') === 'b2al_ganteng_123') {
+                        document.getElementById('step1').classList.add('hidden');
+                        document.getElementById('step2').classList.remove('hidden');
+                    }
+                } else {
+                    errBox.innerText = data.msg; errBox.style.display = 'block';
+                    btn.disabled = false; btnText.innerText = "Mulai Aktivasi"; btnSpinner.style.display = 'none';
+                    if(window.turnstile) window.turnstile.reset(); 
+                }
+            } catch (err) {
+                errBox.innerText = "Koneksi terputus."; errBox.style.display = 'block';
+                btn.disabled = false; btnText.innerText = "Mulai Aktivasi"; btnSpinner.style.display = 'none';
+                if(window.turnstile) window.turnstile.reset();
+            }
+        }
+
+        async function kirimEmail() {
+            const btn = document.getElementById('btnKirimEmail');
+            const btnText = document.getElementById('text-kirim');
+            const btnSpinner = document.getElementById('spinner-kirim');
+            
+            btn.disabled = true;
+            btnText.innerText = "Mengirim...";
+            btnSpinner.style.display = 'block';
+            
+            try {
+                const res = await fetch('/api/request', { method: 'POST', headers: { 'X-B2AL-KEY': SECRET_KEY } });
+                const data = await res.json();
+                
+                if(data.status === 'success') {
+                    document.getElementById('step2').classList.add('hidden');
+                    document.getElementById('step3').classList.remove('hidden');
+                } else {
+                    alert(data.msg);
+                    btn.disabled = false; btnText.innerText = "Kirim Link Verifikasi"; btnSpinner.style.display = 'none';
+                }
+            } catch (e) {
+                alert("Koneksi terputus.");
+                btn.disabled = false; btnText.innerText = "Kirim Link Verifikasi"; btnSpinner.style.display = 'none';
+            }
+        }
+
+        async function verifikasi() {
+            const link = document.getElementById('linkEmail').value;
+            if(!link) { alert("Link tidak boleh kosong."); return; }
+            
+            const btn = document.getElementById('btnVerifikasi');
+            const btnText = document.getElementById('text-verif');
+            const btnSpinner = document.getElementById('spinner-verif');
+            
+            btn.disabled = true;
+            btnText.innerText = "Memverifikasi...";
+            btnSpinner.style.display = 'block';
+            
+            try {
+                const res = await fetch('/api/verify', { 
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-B2AL-KEY': SECRET_KEY },
+                    body: JSON.stringify({ link: link })
+                });
+                const data = await res.json();
+                
+                if(data.status === 'success') {
+                    document.getElementById('status-iklan').style.display = 'block';
+                    document.getElementById('status-iklan').innerHTML = `<span style="color:#00ff88">✅ ${data.msg}</span>`;
+                    document.getElementById('step3').style.display = 'none';
+                } else {
+                    alert(data.msg);
+                    btn.disabled = false; btnText.innerText = "Verifikasi Sekarang"; btnSpinner.style.display = 'none';
+                }
+            } catch (e) {
+                alert("Koneksi terputus.");
+                btn.disabled = false; btnText.innerText = "Verifikasi Sekarang"; btnSpinner.style.display = 'none';
+            }
+        }
+
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('verified') === 'true' || urlParams.get('owner') === 'b2al_ganteng_123') {
+                document.getElementById('view-email').classList.add('hidden');
+                document.getElementById('view-iklan').classList.remove('hidden');
+                if (emailFromBackend) {
+                    document.getElementById('email-text').innerHTML = `Email: <b>${emailFromBackend}</b>`;
+                } else {
+                    document.getElementById('email-text').innerText = "Melanjutkan proses...";
+                }
+                document.getElementById('step1').classList.add('hidden');
+                document.getElementById('step2').classList.remove('hidden');
+            }
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a5183b3a7f2a90cc',t:'MTc5MzE3MjU4Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><iframe height="1" width="1" style="position: absolute; top: 0px; left: 0px; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; visibility: hidden;"></iframe>
+</body></html>
